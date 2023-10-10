@@ -57,7 +57,7 @@ class LayoutMaker():
 
     def __get_timer_buttons(self,timer_status):
         buttons = []
-        if timer_status == Status.start:
+        if timer_status == Status.in_measurement:
             start_button = sg.Button("開始",disabled=True)
             stop_button = sg.Button("終了")
             suspend_button = sg.Button("一時停止")
