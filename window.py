@@ -25,7 +25,7 @@ class Window():
     # windowを生成・返却
     def create_main(self):
         
-        layout = self.layout.create(self.__next_layer,self.__selected_buttons,self._timer_status)
+        layout = self.layout.create(self.__next_layer,self.__selected_buttons,self._timer_status,len(self.__suspend_list))
         return sg.Window("TEST", layout, location=self.__window_pos)
     
     def close(self,boot_window):

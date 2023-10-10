@@ -8,24 +8,30 @@ class LayoutMaker():
         with open(r'./JSON\test.json',encoding="utf-8") as f:
             self.__json = json.load(f)
     
-    def create(self,next_layer,selected_buttons,timer_status):
+    def create(self,next_layer,selected_buttons,timer_status,suspend_num):
         task_name_json = self.__json.copy()
         layout=[]
         for target_layer in range(next_layer+1):
             task_name_json = self.__get_target_layer_task_name_json(target_layer,task_name_json,selected_buttons)
-            
-            # 業務名の階層が続かない（jsonの値が""）の場合はtimer関連ボタンを追加してbreak
-            if  task_name_json == "":
-                timer_buttons = self.__get_timer_buttons(timer_status)
-                layout.append(timer_buttons)
-                break
-            
+            if task_name_json == "":
+                break            
             # radioButton生成
             radio_buttons = self.__get_target_layer_radio_buttons(target_layer,task_name_json,selected_buttons)
             layout.append(radio_buttons)
-        else:
-            if timer_status == Status.suspend:
-                layout.append([sg.Button("再開")])
+        
+        # 業務名の階層が続かない（jsonの値が""）の場合はtimer関連ボタンを追加してbreak
+        if  task_name_json == "":
+            timer_buttons = self.__get_timer_buttons(timer_status)
+            layout.append(timer_buttons)
+            if suspend_num != 0:
+      
+                layout.append([sg.Column([sg.Button("再開",)],element_justification="c",)])
+                # layout.append([sg.Button("再開",)])
+            return layout
+  
+        if suspend_num != 0:
+            layout.append([sg.Text("")])
+            layout.append([sg.Button("再開",)])
 
         return layout
     
@@ -61,16 +67,16 @@ class LayoutMaker():
             start_button = sg.Button("開始",disabled=True)
             stop_button = sg.Button("終了")
             suspend_button = sg.Button("一時停止")
-            restart_button = sg.Button("再開",disabled=True)
+            # restart_button = sg.Button("再開",disabled=True)
         elif timer_status == Status.stop:
             start_button = sg.Button("開始")
             stop_button = sg.Button("終了",disabled=True)
             suspend_button = sg.Button("一時停止",disabled=True)
-            restart_button = sg.Button("再開",disabled=True)
+            # restart_button = sg.Button("再開",disabled=True)
         elif timer_status == Status.suspend:
             start_button = sg.Button("開始")
             stop_button = sg.Button("終了",disabled=True)
             suspend_button = sg.Button("一時停止",disabled=True)
-            restart_button = sg.Button("再開")
+            # restart_button = sg.Button("再開")
    
-        return  [start_button,stop_button,suspend_button,restart_button]
+        return  [start_button,stop_button,suspend_button]
