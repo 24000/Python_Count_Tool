@@ -131,3 +131,12 @@ class Window():
         self.__selected_buttons = task_names.copy()
 
         self._timer_status = Status.in_measurement
+
+    # 現在の計測をキャンセル
+    def cancel_timer(self):
+        self.__current_timer = None
+        if len(self.__suspend_list) == 0:
+            self._timer_status = Status.stop
+        else:
+            self._timer_status = Status.suspend
+        self.__initialize_only_window_display_status()

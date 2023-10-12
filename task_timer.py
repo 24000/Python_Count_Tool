@@ -21,8 +21,9 @@ class TaskTimer():
     def set_stop_time(self):
         self.__data["終了時間"] = dt.datetime.today()
 
-        total_time =  self.__data["終了時間"] - self.__data["開始時間"]
+        diff_time =  self.__data["終了時間"] - self.__data["開始時間"]
 
+        total_time = diff_time
         if self.__data["中断回数"] != 0:
             suspend_total = self.__calculate_suspend_total()
             self.__data["中断時間合計"] = suspend_total
@@ -31,9 +32,9 @@ class TaskTimer():
         self.__data["作業時間合計"] = total_time
 
         if self.__data["中断回数"] != 0:
-            sg.popup("開始時間:" + str(self.__data["開始時間"]) + "\r\n終了時間:" + str(self.__data["終了時間"]) + "\r\n作業時間:" + str(total_time) + "\r\n" + "中断時間:" + str(suspend_total) )
+            sg.popup("開始時間:" + str(self.__data["開始時間"]) + "\r\n終了時間:" + str(self.__data["終了時間"]) + "\r\n差分時間:" + str(diff_time) + "\r\n作業時間:" + str(total_time) + "\r\n" + "中断時間:" + str(suspend_total) )
         else:
-            sg.popup("開始時間:" + str(self.__data["開始時間"]) + "\r\n終了時間:" + str(self.__data["終了時間"]) + "\r\n作業時間:" + str(total_time) + "\r\n" + "中断時間:00:00:00" )
+            sg.popup("開始時間:" + str(self.__data["開始時間"]) + "\r\n終了時間:" + str(self.__data["終了時間"]) + "\r\n差分時間:" + str(diff_time) + "\r\n作業時間:" + str(total_time) + "\r\n" + "中断時間:00:00:00" )
         # sg.popup("作業時間" + total_time.strftime ("%H : %M : %S") + "\r\n" + "中断時間" + self.__data["中断時間合計"].strftime ("%H : %M : %S") )
 
 
