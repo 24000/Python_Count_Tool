@@ -2,6 +2,7 @@ import datetime as dt
 import PySimpleGUI as sg
 
 
+
 # 1taskにつき、1タイマーとして各種情報を辞書として保持
 class TaskTimer():
 

@@ -4,6 +4,7 @@ from enum_status import Status
 from task_timer import TaskTimer
 from layout_maker import LayoutMaker
 
+
 class Window():
 
     def __init__(self):

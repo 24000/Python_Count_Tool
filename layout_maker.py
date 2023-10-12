@@ -3,6 +3,7 @@ import json
 
 from enum_status import Status
 
+
 class LayoutMaker():
     def __init__(self):
         with open(r'./JSON\test.json',encoding="utf-8") as f:
