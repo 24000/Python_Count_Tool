@@ -10,7 +10,7 @@ from window import Window
 
 def main():
 
-    file_path = "./z_設定ファイル.txt" 
+    file_path = "z_設定ファイル.txt" 
     try:
        config_file = ConfigFile(file_path)
     except:
@@ -27,12 +27,37 @@ def main():
     except:
         return
 
+    
+    
 
 
     while True:
         
         boot_window = window.create_main()
+
+        # combo_boxにauto_completeさせるための前処理
+        combos = []
+        if window.next_layer == 0:
+            combos.append(boot_window["0combo_box"]) 
+        else:
+            if window.is_finish_select():
+                for i in range( window.next_layer ):
+                    combos.append(boot_window[ str(i) + "combo_box"] ) 
+            else:
+                for i in range( window.next_layer + 1 ):
+                    combos.append(boot_window[ str(i) + "combo_box"] ) 
+           
+        bind_r_combos = []
+        for i, combo in enumerate(combos):
+            combo.bind('<Return>', ' R') #Enterキー押下　key_nameが"combo名 R"でくる。
+            bind_r_combos.append(combo.key + ' R')
         
+
+        if window.is_finish_select() == False:
+            combos[ window.next_layer ].set_focus()
+            combos[ window.next_layer ].TKCombo.focus()
+            
+
 
         while True:
             key_name, values = boot_window.read()
@@ -52,11 +77,20 @@ def main():
                     window.stop_all_incomplete_timer()
                     window.write_data()
                     sys.exit()
+            
 
-            if key_name.find("radio") != -1:
+            if key_name in bind_r_combos: # combo_boxでエンターキー押下→auto complete
+                idx=0
+                for i,item in enumerate(bind_r_combos):
+                    if key_name == item:
+                        idx = i
+                search_combo(combos[idx],window.get_combo_values(idx))
+
+
+            if key_name.find("combo") != -1 and key_name.find("R") == -1:
                 selected_layer =  int(key_name[0])
-                task_name = key_name.split("_",1)[1]
-                window.set_selected_radio_info(selected_layer,task_name)
+                task_name = values[key_name]
+                window.set_selected_combo_info(selected_layer,task_name)
                 window.close(boot_window)
                 break
 
@@ -103,7 +137,29 @@ def main():
                 sg.popup("現在のタスク計測をキャンセルしました。\r\nキャンセルされたタスク計測分は記録に残りません。")
                 window.close(boot_window)
                 break
+                
 
+            
+
+
+# auto_complete
+def search_combo(combo,combo_values):
+    # 入力された値を取得
+    value=combo.widget.get()
+    if value =="":
+        combo.update(values=combo_values)
+    else:
+        f_lst=[]
+        count=0
+        for item in combo_values:
+            if value.lower() in item.lower():
+                f_lst.append(item)
+                count += 1
+        if count > 0:
+            combo.update(value,values=f_lst)
+            combo.Widget.event_generate('<Key-Down>') # to show the list within the Combo
+        else:
+            combo.update('',values=combo_values)
 
 
 

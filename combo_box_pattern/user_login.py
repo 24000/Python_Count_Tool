@@ -41,15 +41,16 @@ class UserLogin():
         layout.append([ sg.Text("あなたの社員番号を入力してください") ])
         layout.append([ sg.Input(key="Input") ])
         layout.append([  sg.Button("OK") , sg.Button("Cancel")  ])
-        user_input_window = sg.Window('社員番号入力', layout,modal=True)
+        user_input_window = sg.Window('社員番号入力', layout,modal=True,return_keyboard_events=True)
         
-        event, value = user_input_window.read()
-        if event in (sg.WIN_CLOSED,"Cancel"):
-            user_input_window.close()
-            return "Cancel"
-        elif event == "OK":
-            user_input_window.close()
-            user_input = value["Input"]
-            return user_input
+        while True:
+            event, value = user_input_window.read()
+            if event in (sg.WIN_CLOSED,"Cancel"):
+                user_input_window.close()
+                return "Cancel"
+            elif event == "OK" or event == "\r":
+                user_input_window.close()
+                user_input = value["Input"]
+                return user_input
 
         
