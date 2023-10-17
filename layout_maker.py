@@ -1,7 +1,7 @@
 import PySimpleGUI as sg
 import json
 
-from enum_status import Status
+from enums import Status
 
 
 class LayoutMaker():

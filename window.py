@@ -1,13 +1,34 @@
+import os
 import PySimpleGUI as sg
 
-from enum_status import Status
+from enums import Status
+from enums import ExitSituation
 from task_timer import TaskTimer
 from layout_maker import LayoutMaker
-
+from file_writer import FileWriter
 
 class Window():
 
-    def __init__(self):
+    def __init__(self,config_file,employee_num,employee_name):
+        self.__config_file = config_file
+        self.__employee_num = employee_num
+        self.__employee_name = employee_name
+
+        self.__file_name = f"{TaskTimer.Get_Today()}_{self.__employee_num}_{self.__employee_name}.csv"
+        self.__file_path = os.path.join(self.__config_file.output_folder_path,self.__file_name)
+        if os.path.isfile(self.__file_path):
+            try:
+                f = open(self.__file_path, 'a')
+                f.close()
+            except Exception as e:
+                sg.popup( self.__file_name + "が開かれています。\r\n" +  \
+                              "ファイルが開かれているとデータが保存できません。\r\n"  +  \
+                              "閉じてからやり直して下さい。")
+                raise e
+        
+
+
+
         self.layout = LayoutMaker()
         self.__previous_selected_layer = 0
         self.__selected_layer = 0
@@ -16,18 +37,20 @@ class Window():
         self.__window_pos = (None, None)     #WIndowの表示座標
         
     
-        self._timer_id = 1 #インクリメント
+        self.__timer_id = 1 #インクリメント
         self.__completed_timer = [] # 計測完了データ保管用
         self.__current_timer = None # 計測中タイマー
         self.__suspend_list = [] #一時停止中データ保管用
         
-        self._timer_status = Status.stop    #現在のタイマーの状態
+        self.__timer_status = Status.stop    #現在のタイマーの状態
+
 
     # windowを生成・返却
     def create_main(self):
         
-        layout = self.layout.create(self.__next_layer,self.__selected_buttons,self._timer_status,len(self.__suspend_list))
-        return sg.Window("TEST", layout, location=self.__window_pos)
+        layout = self.layout.create(self.__next_layer,self.__selected_buttons,self.__timer_status,len(self.__suspend_list))
+        title = self.__employee_num + "：" + self.__employee_name
+        return sg.Window(title, layout, location=self.__window_pos)
     
     def close(self,boot_window):
         self.__window_pos = boot_window.current_location()
@@ -58,9 +81,9 @@ class Window():
     # 開始ボタン押下時
     def start_timer(self):
         task_name = self.__get_selected_task_name_string()
-        self.__current_timer = TaskTimer(self._timer_id,task_name)
-        self._timer_id += 1
-        self._timer_status = Status.in_measurement
+        self.__current_timer = TaskTimer(self.__timer_id,task_name)
+        self.__timer_id += 1
+        self.__timer_status = Status.in_measurement
     
 
     # 開始ボタン押下時に選択されているボタンのタスク名を//つなぎで文字列化
@@ -80,9 +103,9 @@ class Window():
 
         # 一時停止中のタイマーがあれば、再開ボタンあり。なければ再開ボタンなし。
         if len(self.__suspend_list) == 0:
-            self._timer_status = Status.stop
+            self.__timer_status = Status.stop
         else:
-            self._timer_status = Status.suspend
+            self.__timer_status = Status.suspend
 
         self.__initialize_only_window_display_status()
 
@@ -100,7 +123,7 @@ class Window():
         self.__current_timer.set_suspend_start_data()
         self.__suspend_list.append(self.__current_timer)
         self.__current_timer = None
-        self._timer_status = Status.suspend
+        self.__timer_status = Status.suspend
         self.__initialize_only_window_display_status()
     
 
@@ -131,13 +154,79 @@ class Window():
         self.__next_layer = len(task_names) 
         self.__selected_buttons = task_names.copy()
 
-        self._timer_status = Status.in_measurement
+        self.__timer_status = Status.in_measurement
 
     # 現在の計測をキャンセル
     def cancel_timer(self):
         self.__current_timer = None
         if len(self.__suspend_list) == 0:
-            self._timer_status = Status.stop
+            self.__timer_status = Status.stop
         else:
-            self._timer_status = Status.suspend
+            self.__timer_status = Status.suspend
         self.__initialize_only_window_display_status()
+
+
+    # 未完了のタイマーを全て完了させる
+    def stop_all_incomplete_timer(self):
+        if self.__current_timer != None:
+            self.stop_timer()
+        
+        if len(self.__suspend_list) != 0:
+            for suspend_timer in self.__suspend_list:
+                suspend_timer.set_suspend_end_data()
+                self.__current_timer = suspend_timer
+                self.stop_timer()
+
+
+    def check_exit_situation(self):
+        if self.__is_all_timer_completed():
+            if len(self.__completed_timer)== 0:
+                answer = sg.PopupYesNo("計測されたデータはまだ何もありません。\r\nこのまま終了しますか？")
+                if answer == "Yes":
+                    return ExitSituation.no_data
+                else:
+                    return ExitSituation.exit_cancel
+            else:
+                answer = sg.PopupYesNo("計測した全てのデータをファイルに保存し、終了しますか？")
+                if answer =="Yes":
+                    return ExitSituation.exists_complete_data_only
+                else:
+                    return ExitSituation.exit_cancel
+        else:
+            exit_msg = self.__get_exists_incomplete_timer_message()
+            answer = sg.PopupYesNo(exit_msg)
+            if answer == "Yes":
+                return ExitSituation.exists_incomplete_data
+            else:
+                return ExitSituation.exit_cancel
+
+
+
+    def __is_all_timer_completed(self):
+        if self.__current_timer == None and  len(self.__suspend_list) == 0:
+            return True
+        else:
+            return False
+        
+
+
+    def __get_exists_incomplete_timer_message(self):
+        msg = ""
+        if self.__current_timer != None:
+            msg += "・現在計測中のタスクが未完了\r\n"
+        
+        suspend_list_num =  len(self.__suspend_list)
+        if suspend_list_num != 0:
+            msg += "・一時停止中タスクが" + str(suspend_list_num) + "件あり\r\n"
+
+        msg += "\r\n"
+        msg += "上記については全て現在時刻を終了時間として登録し、\r\n" \
+                     "処理を終了しますがよろしいですか？\r\n\r\n"
+        
+        return msg
+        
+
+    def write_data(self):
+        witer = FileWriter()
+        witer.write_csv_file(self.__file_path,self.__employee_num,self.__employee_name,self.__completed_timer)
+        
