@@ -24,7 +24,7 @@ def main():
 
     try:
         window = Window(config_file, login.employee_num, login.employee_name)
-    except:
+    except Exception as e:
         return
 
 
