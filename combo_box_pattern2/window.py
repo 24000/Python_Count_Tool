@@ -17,16 +17,11 @@ class Window():
         self.__file_name = f"{TaskTimer.Get_Today()}_{self.__employee_num}_{self.__employee_name}.csv"
         self.__file_path = os.path.join(self.__config_file.output_folder_path,self.__file_name)
         if os.path.isfile(self.__file_path):
-            try:
-                f = open(self.__file_path, 'a')
-                f.close()
-            except Exception as e:
-                sg.popup( self.__file_name + "が開かれています。\r\n" +  \
-                              "ファイルが開かれているとデータが保存できません。\r\n"  +  \
-                              "閉じてからやり直して下さい。")
-                raise e
+            file_close,msg = self.__is_file_close()
+            if not file_close:
+                sg.popup(msg)
+                raise Exception
         
-
         self.layout = LayoutMaker()
         self.__previous_selected_layer = 0
         self.__selected_layer = 0
@@ -47,13 +42,28 @@ class Window():
     def next_layer(self):
         return self.__next_layer
     
+    
+    def __is_file_close(self):
+        try:
+            f = open(self.__file_path, 'a')
+            f.close()
+            return True,""
+        except Exception as e:
+            msg = self.__file_name + "が開かれています。\r\n" +  \
+                        "ファイルが開かれているとデータが保存できません。\r\n"  +  \
+                        "閉じてからやり直して下さい。"
+            return False, msg
+       
+    
 
     # windowを生成・返却
     def create_main(self):
-        
         layout = self.layout.create(self.__next_layer,self.__selected_buttons,self.__timer_status,len(self.__suspend_list))
         title = self.__employee_num + "：" + self.__employee_name
-        return sg.Window(title, layout, location=self.__window_pos,finalize=True,use_default_focus=True)
+        if self.__window_pos == (None,None):
+            return sg.Window(title, layout, finalize=True,use_default_focus=True)
+        else:
+            return sg.Window(title, layout, location=self.__window_pos,finalize=True,use_default_focus=True)
     
 
     def close(self,boot_window): 
@@ -76,10 +86,6 @@ class Window():
             self.__selected_buttons = self.__selected_buttons[:self.__selected_layer]
         
         self.__selected_buttons.append(selected_task_name)
-
-    # window表示位置の保存
-    def set_window_position(self,location):
-        self.__window_pos = location
 
     
     # 開始ボタン押下時
@@ -183,6 +189,24 @@ class Window():
 
 
     def check_exit_situation(self):
+        # 状況とユーザーの意思を確認
+        situation = self.__check_situation()
+        # ファイル書き込み不要パターンはそのままreturn
+        if situation in (ExitSituation.no_data,ExitSituation.exit_cancel):
+            return situation
+
+        # ファイル書き込み必要パターンの場合、ファイルが開かれているとセーブできないため、
+        # ファイルが閉じらえているかチェック
+        file_close,msg = self.__is_file_close()
+        # 閉じられていればそのままreturn、閉じられていなければ強制キャンセル
+        if file_close:
+            return situation
+        else:
+            sg.popup(msg)
+            return ExitSituation.exit_cancel
+            
+    
+    def __check_situation(self):
         if self.__is_all_timer_completed():
             if len(self.__completed_timer)== 0:
                 answer = sg.PopupYesNo("計測されたデータはまだ何もありません。\r\nこのまま終了しますか？")
@@ -193,17 +217,16 @@ class Window():
             else:
                 answer = sg.PopupYesNo("計測した全てのデータをファイルに保存し、終了しますか？")
                 if answer =="Yes":
-                    return ExitSituation.exists_complete_data_only
+                    return  ExitSituation.exists_complete_data_only
                 else:
-                    return ExitSituation.exit_cancel
+                    return  ExitSituation.exit_cancel
         else:
             exit_msg = self.__get_exists_incomplete_timer_message()
             answer = sg.PopupYesNo(exit_msg)
             if answer == "Yes":
-                return ExitSituation.exists_incomplete_data
+                return  ExitSituation.exists_incomplete_data
             else:
-                return ExitSituation.exit_cancel
-
+                return  ExitSituation.exit_cancel
 
 
     def __is_all_timer_completed(self):

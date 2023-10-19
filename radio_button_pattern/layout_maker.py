@@ -6,7 +6,7 @@ from enums import Status
 
 class LayoutMaker():
     def __init__(self):
-        with open(r'test.json',encoding="utf-8") as f:
+        with open(r'業務名一覧.json',encoding="utf-8") as f:
             self.__json = json.load(f)
     
     def create(self,next_layer,selected_buttons,timer_status,suspend_num):
@@ -113,3 +113,8 @@ class LayoutMaker():
             cancel_button = sg.Button("キャンセル",disabled=True)
    
         return  [start_button,stop_button,suspend_button,cancel_button]
+    
+
+
+    def is_finish_select(self):
+        return self.__is_finish_select

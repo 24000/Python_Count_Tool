@@ -10,7 +10,7 @@ from window import Window
 
 def main():
 
-    file_path = "z_設定ファイル.txt" 
+    file_path = "設定.txt" 
     try:
        config_file = ConfigFile(file_path)
     except:

@@ -11,21 +11,21 @@ from window import Window
 
 def main():
 
-    file_path = "z_設定ファイル.txt" 
+    file_path = "設定.txt" 
     try:
        config_file = ConfigFile(file_path)
-    except:
+    except Exception as e:
         return
 
     try:
         login = UserLogin()
         login.Do(config_file)
-    except:
+    except Exception as e:
         return
 
     try:
         window = Window(config_file, login.employee_num, login.employee_name)
-    except:
+    except Exception as e:
         return
 
 
@@ -73,11 +73,11 @@ def main():
                         index = i
                 
                 if combos[index].user_bind_event.keycode == 40: # 40=keyDown
+                    # 引数でcombos[index]で渡すと描画不具合が発生する。
+                    # 関数内でcombos[index]と使用すると安定。メモリ参照の関係か？
                     clear_combo_tooltip(combos,index)
                 else:
                     task_names = window.get_combo_values(index)
-                    # 引数でcombos[index]で渡すと描画不具合が発生する。
-                    # 関数内でcombos[index]と使用すると安定。メモリ参照の関係か？
                     symbol_text_updated(combos,index,task_names)
 
 

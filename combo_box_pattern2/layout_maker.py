@@ -6,7 +6,7 @@ from enums import Status
 
 class LayoutMaker():
     def __init__(self):
-        with open(r'./test.json',encoding="utf-8") as f:
+        with open(r'./業務名一覧.json',encoding="utf-8") as f:
             self.__json = json.load(f)
             self.__combo_values =[] # combo_boxのauto complete実現のためだけ
             self.__is_finish_select = False # combo_boxのauto complete実現のためだけ
