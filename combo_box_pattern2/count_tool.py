@@ -42,7 +42,6 @@ def main():
             bind_key_combo_names.append(combo.key + " K")
         if window.is_finish_select() == False:
             combos[ window.next_layer ].set_focus()
-            combos[ window.next_layer ].TKCombo.focus()
             
 
 

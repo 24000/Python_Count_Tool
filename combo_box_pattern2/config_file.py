@@ -11,6 +11,7 @@ class ConfigFile():
         try:
             self.__read(config_file_path)
         except Exception as e:
+            sg.popup("設定.txtが同一フォルダ内に存在しません。")
             raise e
     
 

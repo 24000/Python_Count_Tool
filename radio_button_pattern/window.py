@@ -40,8 +40,9 @@ class Window():
 
     def __is_file_close(self):
         try:
-            f = open(self.__file_path, 'a')
-            f.close()
+            if os.path.isfile(self.__file_path) :
+                f = open(self.__file_path, 'a')
+                f.close()
             return True,""
         except Exception as e:
             msg = self.__file_name + "が開かれています。\r\n" +  \

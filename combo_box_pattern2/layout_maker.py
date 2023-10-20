@@ -6,11 +6,14 @@ from enums import Status
 
 class LayoutMaker():
     def __init__(self):
-        with open(r'./業務名一覧.json',encoding="utf-8") as f:
-            self.__json = json.load(f)
-            self.__combo_values =[] # combo_boxのauto complete実現のためだけ
-            self.__is_finish_select = False # combo_boxのauto complete実現のためだけ
-
+        try:
+            with open(r'./業務名一覧.json',encoding="utf-8") as f:
+                self.__json = json.load(f)
+                self.__combo_values =[] # combo_boxのauto complete実現のためだけ
+                self.__is_finish_select = False # combo_boxのauto complete実現のためだけ
+        except Exception as e:
+            sg.popup("業務名一覧が同一フォルダ内に存在しないか、業務名一覧に不備があります。")
+            raise e
 
     def create(self,next_layer,selected_buttons,timer_status,suspend_num):
         task_name_json = self.__json.copy()
